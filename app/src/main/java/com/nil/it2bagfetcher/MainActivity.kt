@@ -149,9 +149,9 @@ class MainActivity : AppCompatActivity() {
                         (body.contains("INDIAPOST", ignoreCase = true) ||
                                 body.contains("INPOST", ignoreCase = true))
                     ) {
-                        val otp = Regex("OTP[^0-9]*(\\d{6})", RegexOption.IGNORE_CASE)
+                        val otp = Regex("OTP[^0-9]*([0-9]{6})", RegexOption.IGNORE_CASE)
                             .find(body)?.groupValues?.get(1)
-                            ?: Regex("\\b(\\d{6})\\b").find(body)?.groupValues?.get(1)
+                            ?: Regex("([0-9]{6})").find(body)?.groupValues?.get(1)
                         if (!otp.isNullOrEmpty() && otp != lastInjectedOtp) {
                             injectOtpIntoWebView(otp)
                             break
@@ -309,7 +309,7 @@ class MainActivity : AppCompatActivity() {
                     }
 
                     const tables = Array.from(document.querySelectorAll('table')).filter(t => t.offsetParent !== null);
-                    const targetTable = tables.find(t => /bag\s*number/i.test(t.innerText || '')) || tables[0];
+                    const targetTable = tables.find(t => /bag[ ]*number/i.test(t.innerText || '')) || tables[0];
                     if (!targetTable) return;
 
                     const rows = Array.from(targetTable.querySelectorAll('tr'));
@@ -350,7 +350,7 @@ class MainActivity : AppCompatActivity() {
                         window.__collectedBags[bagNo] = cnt;
                     });
 
-                    const rangeMatch = (document.body.innerText || '').match(/(\d+)\s*-\s*(\d+)\s+of\s+(\d+)/i);
+                    const rangeMatch = (document.body.innerText || '').match(/([0-9]+)[ ]*-[ ]*([0-9]+)[ ]+of[ ]+([0-9]+)/i);
                     if (rangeMatch) {
                         const endRow = parseInt(rangeMatch[2], 10);
                         const totalRows = parseInt(rangeMatch[3], 10);
@@ -397,24 +397,4 @@ class MainActivity : AppCompatActivity() {
         fun onBagCountReady(eTotal: Int, cTotal: Int, eBags: Int, cBags: Int) {
             runOnUiThread {
                 val grandTotal = eTotal + cTotal
-                val msg = "E Bags ($eBags): $eTotal articles \vert{} C Bags ($cBags): $cTotal articles \vert{} Total:$grandTotal"
-                statusText.text = msg
-                sendNotification("IT 2.0 Expected Bags (6:00 AM)", msg)
-            }
-        }
-    }
-
-    private fun sendNotification(title: String, body: String) {
-        val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        val notification = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(android.R.drawable.ic_dialog_info)
-            .setContentTitle(title)
-            .setContentText(body)
-            .setStyle(NotificationCompat.BigTextStyle().bigText(body))
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
-            .build()
-        manager.notify(2026, notification)
-    }
-
-    private fun createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                val msg = "E Bags ($eBags):$eTotal articles | C Bags ($cBags):$cTotal articles
